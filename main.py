@@ -10,21 +10,28 @@ pygame.display.set_icon(pygame.image.load("IconNoBG.png"))
 # create 1024x1024 window
 window = pygame.display.set_mode((1024, 1024))
 
-# bouncy ball icon
-bouncyBall = pygame.image.load("ballSize1.png")
+# bouncy ball icon and "floor" coordinate arrays
+iconArray = ["ballSize1.png", "ballSize2.png", "ballSize3.png"]
+floorArray = [923, 873, 823]
+bouncyBall = pygame.image.load(iconArray[0])
+floorCoordinate = floorArray[0]
+
+# bouncy ball default variables
 bouncyBallX = 487
 bouncyBallY = 487
-ballStopped = False
-clickDebugFlag = False
+bounceFactor = -0.75
 
 
-XVelocity = 0
-YVelocity = 0
-timeLastUpdate = 0
-
-# acceleration assuming 1 pixel == 0.125 meter
+# acceleration and velocity. Acceleration is amplified by a factor of 1000
 XAcceleration = 0
 YAcceleration = 9810
+XVelocity = 0
+YVelocity = 0
+
+# tracking variables
+ballStopped = False
+clickDebugFlag = False
+timeLastUpdate = 0
 
 
 # tracking when the user asks to exit the game
@@ -53,6 +60,25 @@ while not quitFlag:
             YVelocity = 0
             timeLastUpdate = pygame.time.get_ticks()
             clickDebugFlag = True
+        elif event.type == pygame.KEYDOWN:
+            # if key is pressed to change ball type, change sprite and floor coordinate
+            # and reset and center ball position as to handle edge case of size changing
+            # when the ball is already on the floor.
+            if event.key == pygame.K_1:
+                bouncyBall = pygame.image.load(iconArray[0])
+                floorCoordinate = floorArray[0]
+                bouncyBallX = 487
+                bouncyBallY = 487
+            elif event.key == pygame.K_2:
+                bouncyBall = pygame.image.load(iconArray[1])
+                floorCoordinate = floorArray[1]
+                bouncyBallX = 462
+                bouncyBallY = 487
+            elif event.key == pygame.K_3:
+                bouncyBall = pygame.image.load(iconArray[2])
+                floorCoordinate = floorArray[2]
+                bouncyBallX = 437
+                bouncyBallY = 487
         else:
             continue
 
@@ -74,14 +100,14 @@ while not quitFlag:
         continue
 
     # if ball has hit the bottom of the frame... (1024 pixels - sprite is 100 pixels tall)
-    if bouncyBallY >= 924 and not ballStopped:
+    if bouncyBallY >= floorCoordinate + 1 and not ballStopped:
         if abs(YVelocity) < 500:
             # this is to make sure we don't trigger the bounce logic over and over again at low velocity
             ballStopped = True
-            bouncyBallY = 923
+            bouncyBallY = floorCoordinate
             YVelocity = 0
         else:
-            bouncyBallY = 923
+            bouncyBallY = floorCoordinate
 
             timeLastUpdate = pygame.time.get_ticks()
-            YVelocity = YVelocity * -0.75
+            YVelocity = YVelocity * bounceFactor
